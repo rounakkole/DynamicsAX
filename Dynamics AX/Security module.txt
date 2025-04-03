@@ -1,0 +1,74 @@
+
+
+Privileges
+CAL - System Administration - 
+Setup - Security Roles - 
+Select role - right click on Duty - edit -
+Select Previlege
+Check Permission
+
+
+Role > Duty > Privilege > Permission
+
+Security roles
+AOT >> Tables >> (right click) Add ins >> Security tools >> View related security roles
+
+
+https://learn.microsoft.com/en-us/dynamicsax-2012/developer/security-privilege-properties
+MenuItemDisplay, MenuItemOutput, MenuItemAction, ServiceOperation, WebActionItem, WebURLItem, WebManagedContent
+Tables, Server Methods, Forms
+https://learn.microsoft.com/en-us/dynamicsax-2012/developer/how-to-find-objects-and-roles-related-to-security-constructs?wt.mc_id=5000414
+
+
+AOT - Menus - JournalPage (find AOT name) - Area - FormName
+	Form Properties - Display Menu Item
+AOT - Menu Items - Display - MenuItem Name - (right click) Add Ins - Security Tools
+	View related security roles - 
+AOT - System documentation - Tables - SECURITY USER ROLE / SECURITY ROLE
+
+
+
+Security roles
+Tables >> (right click) Add ins >> Security tools >> View related security roles
+
+
+
+
+static void findAllUsersForSpecificRole(Args _args)
+{
+    UserInfo                userInfo;
+    SecurityRole            securityRole;
+    SecurityUserRole        securityUserRole;
+
+    while select securityUserRole join securityRole
+        where securityUserRole.SecurityRole == securityRole.RecId 
+	  && securityRole.Name == "Operations Assistant Manager"
+    while select userInfo
+        where userInfo.id == securityUserRole.User
+    //while select userInfo	join securityUserRole
+    //where securityUserRole.User == userInfo.Id
+    //join Roles where Roles.RecId  == securityUserRole.SecurityRole && Roles.AotName =="-SYSADMIN-"
+    info(strFmt("%1 %2 %3",userInfo.id, userInfo.name, securityRole.Name));
+    info("done");
+}
+
+
+
+static void findAllDutiesForSpecificPrivilege(Args _args)
+{
+        SecurityTask             securityTask;
+        SecuritySubTask       securitySubTask;
+        #define.SecurityTask("AbbreviationCodeImport_Import") // your privileges name
+
+        select firstOnly RecId from securityTask
+                  where securityTask.AotName == #SecurityTask
+                  && securityTask.Type == SecurityTaskType::Privilege;
+
+          while select SecurityTask from securitySubTask
+                    where securitySubTask.SecuritySubTask == securityTask.RecId
+           {
+                     select firstOnly * from securityTask
+                                 where securityTask.RecId == securitySubTask.SecurityTask;
+            info(strFmt(“%1,%2,%3″, securityTask.AOTNAME, securityTask.Name, securityTask.Type));
+          }
+ }

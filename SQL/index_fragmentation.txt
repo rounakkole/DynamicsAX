@@ -1,0 +1,52 @@
+-- check fragamentation
+
+top10 index fragmentation
+USE NONPRD_DB  --Need to Specify the User Database Name
+go
+SELECT top 10 OBJECT_NAME(fq.OBJECT_ID) AS TableName,
+fq.name AS IndexName, qs.index_type_desc AS IndexType,
+qs.avg_fragmentation_in_percent
+FROM sys.dm_db_index_physical_stats(DB_ID(), NULL, NULL, NULL, NULL) qs
+INNER JOIN sys.indexes fq
+ON fq.object_id = qs.object_id
+AND fq.index_id = qs.index_id
+WHERE qs.avg_fragmentation_in_percent > 0
+ORDER BY qs.avg_fragmentation_in_percent DESC
+
+
+
+
+
+-- Loop through the partitions.
+WHILE (1=1)
+    BEGIN;
+        FETCH NEXT
+           FROM partitions
+           INTO @objectid, @indexid, @partitionnum, @frag;
+        IF @@FETCH_STATUS < 0 BREAK;
+        SELECT @objectname = QUOTENAME(o.name), @schemaname = QUOTENAME(s.name)
+        FROM sys.objects AS o
+        JOIN sys.schemas as s ON s.schema_id = o.schema_id
+        WHERE o.object_id = @objectid;
+        SELECT @indexname = QUOTENAME(name)
+        FROM sys.indexes
+        WHERE  object_id = @objectid AND index_id = @indexid;
+        SELECT @partitioncount = count (*)
+        FROM sys.partitions
+        WHERE object_id = @objectid AND index_id = @indexid;
+-- 30 is an arbitrary decision point at which to switch between reorganizing and rebuilding.
+        IF @frag > 30.0 and  @frag < 50.0
+            SET @command = N'ALTER INDEX ' + @indexname + N' ON ' + @schemaname + N'.' + @objectname + N' REORGANIZE';
+        IF @frag >= 50.0
+            SET @command = N'ALTER INDEX ' + @indexname + N' ON ' + @schemaname + N'.' + @objectname + N' REBUILD WITH (FILLFACTOR = 70)';
+        IF @partitioncount > 1
+            SET @command = @command + N' PARTITION=' + CAST(@partitionnum AS nvarchar(10));
+        EXEC (@command);
+        PRINT N'Executed: ' + @command;
+    END;
+-- Close and deallocate the cursor.
+CLOSE partitions;
+DEALLOCATE partitions;
+-- Drop the temporary table.
+DROP TABLE #work_to_do;
+GO

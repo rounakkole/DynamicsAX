@@ -1,0 +1,73 @@
+static void Job_ImportCSV(Args _args)
+{
+
+    InteropPermission interopPermission;
+    SysMailer mailer;
+    System.Exception e;
+    container                   readCon;
+    //FileName                    fileName;
+    str value1;
+
+    #File
+    CommaTextIo commaTextIo;
+    FileIOPermission permission;
+    str fileName = @"Drive:\exportFiles\testFile.csv";
+
+
+        commaTextIo = new CommaTextIo(fileName, 'r');
+        commaTextIo.inFieldDelimiter(',');
+        readCon = commaTextIo.read();
+
+	while(commaTextIo.status() == IO_Status::OK)
+        {
+            readCon = commaTextIo.read();
+
+            if(readCon)
+            {
+                value1 = conPeek(readCon,1);
+                info(strFmt("%1", value1));
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+static void Job_ImportCSV2(Args _args)
+{
+    CommaTextIO                 csvFile;
+    container                   readCon;
+    Dialog                      dialog;
+    DialogField                 dfFileName;
+    FileName                    fileName;
+    str value1;
+    
+    #File
+    
+    dialog = new Dialog("Pick the file");
+    dfFileName = dialog.addField(extendedTypeStr("FilenameOpen"));
+    dialog.filenameLookupFilter(['csv','*.csv']);
+    
+    if (dialog.run())
+    {
+        csvFile = new CommaTextIo(dfFileName.value(), 'r');
+        csvFile.inFieldDelimiter(',');
+        readCon = csvFile.read();
+        
+        while(csvFile.status() == IO_Status::OK)
+        {
+            readCon = csvFile.read();
+
+            if(readCon)
+            {
+                value1 = conPeek(readCon,1);
+			info(strFmt("%1", value1));
+		}
+	}
+}

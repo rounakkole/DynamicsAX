@@ -1,0 +1,52 @@
+static void Job_ExportExcel(Args _args)
+{
+    int row;
+    SysExcelCells cells;
+    SysExcelApplication sysExcelApplication;
+    SysExcelWorkBooks sysExcelWorkBooks;
+    SysExcelWorkBook sysExcelWorkBook;
+    SysExcelWorkSheets sysExcelWorkSheets;
+    SysExcelWorkSheet sysExcelWorkSheet;
+
+    //declare table
+
+    ;
+
+    try
+    {
+        sysExcelApplication = SysExcelApplication::construct();
+        sysExcelWorkBooks = sysExcelApplication.workbooks();
+        sysExcelWorkBook = sysExcelWorkBooks.add();
+        sysExcelWorkSheets = sysExcelWorkbook.worksheets();
+        sysExcelWorkSheet = sysExcelWorkSheets.add();
+        sysExcelWorkSheet.name("worksheet1");
+
+        row=1;
+
+        if(row == 1)
+        {
+            sysExcelWorkSheet.cells().item(row,1).value("header1");
+            sysExcelWorkSheet.cells().item(row,2).value("header2");
+            sysExcelWorkSheet.cells().item(row,3).value("header3");
+            sysExcelWorkSheet.cells().item(row,4).value("header4");
+        }
+
+        //sysExcelWorkSheet.columns().autoFit();
+        sysExcelApplication.visible(false);
+    }
+    catch
+    {
+        sysExcelApplication.quit();
+    }
+
+    //sysExcelWorkbook.saveAs("Drive:\\Test.xlsx");
+    //sysExcelWorkbook.saveAs(@"\\"Target system Ip Address"\MicrosoftDynamicsAXAif60\Bin\test.xlsx");
+    sysExcelWorkbook.saveAs(@"Drive:\SHARED_folder\NewFile.xls"); //change filename and filepath
+
+    //sysExcelWorkBook.comObject().save();
+    sysExcelWorkBook.comObject().save();
+    //sysExcelWorkBook.save();
+    sysExcelWorkBook.saved(true);
+    sysExcelApplication.quit();
+    info(strFmt("Successfully file saved"));
+}

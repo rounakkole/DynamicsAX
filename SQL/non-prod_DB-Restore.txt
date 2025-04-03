@@ -1,0 +1,46 @@
+	Copy prod DB backup to non-prod environment Shared Folder
+
+	Services - stop AOS
+
+	(delete the existing DB and then restore it  to avoid compile error)	
+		SSMS login
+		Object explorer - Databases -   AXDB & AXDB_model
+						(right click) Delete
+						check close existing connections - OK
+				Database - (right click) Refresh
+
+
+		Object explorer - Databases - (right click) restore databases - 
+					(GENERAL tab) - select Device
+			File - Select Backup File - Add - select shared path 
+						(search All extentions)
+			Source database: non-prod1_env - Destination database: non-prod_env
+			(FILE tab) - check relocate all files to folder - (check our restore as file name)
+			(OPTIONS tab) - check Overwrite the existing DB
+			click on Script - execute script
+			(progress in messages)
+		(follow for model backup also)
+	Database - (right click) Refresh
+
+	Services - start AOS
+
+	Log on as existing AX user
+	Open AX2012 - CAL - Sys Admin - Users - Users - Import Tab - 
+	(wizard)next - domain = Active_Directory & display name = AD ID - next
+		check mark name - next - select name - next
+		available role = system admin (drag to selected role) - next
+		check No profile in all companies - next - finish
+
+	Log in with your ID
+	Open AX-2012 - CAL - Sys Admin - compile application (monitor progress)
+				(resolve compile errors)
+				compile into .NET CIL (monitor progress)
+				Database - SQL administration - Table actions - Synchronise database
+
+		
+
+
+
+
+
+

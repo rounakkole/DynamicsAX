@@ -1,0 +1,81 @@
+
+Delete AUC files in user profile.
+C:\Users\user1\AppData\Local
+Reset the usage data from menu.
+Click File > Tools > Options. In the Options form, click Usage data then reset button press click yes..
+To delete all user usage data
+go to AOT-->SystemDocumentation-->Tables-->SysLastValue.
+Delete all records
+
+
+
+
+AOI
+AX2009
+D:\Program Files\Microsoft Dynamics AX\50\Application\Appl\DynamicsAx
+
+
+
+
+Delete AUC
+for /d %%a in (C:\Users\*) do (
+    IF EXIST "%%a\AppData\Local" (
+	del "%%a\AppData\Local\ax*.kti"
+	del "%%a\AppData\Local\ax*.auc"
+
+
+
+
+
+5.1.	Synchronization
+Synchronize tables/views from AX and ensure there is no synchronization issue in any type of object.
+
+Launch «Microsoft Dynamics AX application» on target server.
+1.	Starting of application may last 10 minutes (index creation time)
+2.	Block any new user connecting to the application to finalize the refresh. Navigate to DAT →Administration →Administration Area → Common Forms →Online Users → Server Instances and click on the button «Reject new clients»
+Note: Reject new clients from both AOS, if the application is managed with multiple AOS.
+
+3.	Navigate to DAT →Administration →Administration Area →Periodic →SQL Administration →All tables →Table actions →Synchronize database 
+If only warning message appears, click on «Continue» to resume synchronization. 
+
+
+5.2.	Compilation
+Compile complete application objects to ensure there is no error in the last layer delivery.
+Launch application «Microsoft Dynamics AX application» on target server.
+
+1.	Navigate to DAT →Administration →Administration Area →Periodic →Compile application
+2.	Click on «Yes» button to start compilation. The result of compilation will be displayed on «Compiler Output» window
+
+
+To extract the compilation result, 
+click on «Import/Export → Export To» button and save the result 
+or go to the path «C:\Users\Public\Microsoft\Dynamics Ax\Log» to find the latest compilation result.
+
+Update cross reference to regenerate dynamic links in AX
+In AX, go to DAT→ Tools →Development Tools →Cross-reference →Periodic →Update
+Click on «Update Data Model» check box in the dialog and click «OK» button
+
+
+
+5.8.	AX URL Site 
+Verify internal and external URL and change according to target server.
+In AX, go to DAT→ Administration →Administration Area → Setup →Internet → Enterprise Portal →Web sites
+
+To change URL configuration, 
+1.	Click on « X »  button or «File →New»
+2.	A new record gets create, fill the same information as existing line and change only server name on internal and external URL field
+3.	Go to «General »   tab and activate checkbox «Company independent» for the new record created
+
+
+
+5.9.	Environment Color Configuration
+In AX, go to «Name of the company»→ Basic → Basic Area→Setup → Company Information
+
+
+5.10.	Web Service Configuration
+Generate and enable region specific web services. 
+In AX, go to DAT→ Basic →Basic Area →Setup → Application Integration Framework →Services
+ 
+
+Click on «Generate» to re-generate services. Once the generation is successful an infolog shows as below
+Enable below shown web services specific to region application.

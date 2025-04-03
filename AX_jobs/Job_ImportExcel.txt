@@ -1,0 +1,153 @@
+
+static void Job_ImportExcel(Args _args)
+{
+     SysExcelApplication application;
+     SysExcelWorkbooks workbooks;
+     SysExcelWorkbook workbook;
+     SysExcelWorksheets worksheets;
+     SysExcelWorksheet worksheet;
+     SysExcelCells cells;
+     COMVariantType type;
+
+     FileName filename;
+     int row =1;
+     MyTempTable myTempTable; //declared in AOT
+     ;
+
+     application = SysExcelApplication::construct();
+     workbooks = application.workbooks();
+
+     filename = @"Drive:\NewFolder\NewFile.xls"; //file path
+     try
+     {
+     workbooks.open(filename);
+     }
+     catch (Exception::Error)
+     {
+     throw error("File cannot be opened.");
+     }
+     workbook = workbooks.item(1);
+     worksheets = workbook.worksheets();
+     worksheet = worksheets.itemFromNum(1);
+     cells = worksheet.cells();
+     do
+     {
+         ttsBegin;
+      	row++;
+         myTempTable.FieldName = cells.item(row, 2).value().bStr(); //ToDo: column number
+
+         //myTempTable.FieldName = cells.item(row, 2).value().int(); 
+         //myTempTable.FieldName = cells.item(row, 2).value().double(); 
+         //type = cells.item(row+1, 1).value().variantType();
+         //str60 FieldName = int2str(real2int(realPurchId));
+         //info(strFmt("type %1", type));
+
+         myTempTable.doInsert();
+         ttsCommit;
+     type = cells.item(row+1, 1).value().variantType();
+     }
+     while (type != COMVariantType::VT_EMPTY);
+     application.quit();
+     info(strFmt("row: %1", row));
+}
+
+
+
+
+
+
+
+
+
+
+
+//Write data in excel through X++ code.
+static void thaAxapta_Write2Excel(Args _args)
+{
+InventTable inventTable;
+SysExcelApplication application;
+SysExcelWorkbooks workbooks;
+SysExcelWorkbook workbook;
+SysExcelWorksheets worksheets;
+SysExcelWorksheet worksheet;
+SysExcelCells cells;
+SysExcelCell cell;
+int row;
+;
+application = SysExcelApplication::construct();
+workbooks = application.workbooks();
+workbook = workbooks.add();
+worksheets = workbook.worksheets();
+worksheet = worksheets.itemFromNum(1);
+cells = worksheet.cells();
+cells.range('A:A').numberFormat('@');
+cell = cells.item(1,1);
+cell.value("Item");
+cell = cells.item(1,2);
+cell.value("Name");
+row = 1;
+while select inventTable
+{
+    row++;
+    cell = cells.item(row, 1);
+    cell.value(inventTable.ItemId);
+    cell = cells.item(row, 2);
+    cell.value(inventTable.ItemName);
+}
+application.visible(true);
+}
+
+
+
+
+
+
+
+
+
+//Read from an Excel through X++ code
+static void theAxapta_ReadExcel(Args _args)
+{
+SysExcelApplication application;
+SysExcelWorkbooks workbooks;
+SysExcelWorkbook workbook;
+SysExcelWorksheets worksheets;
+SysExcelWorksheet worksheet;
+SysExcelCells cells;
+COMVariantType type;
+int row;
+ItemId itemid;
+Name name;
+FileName filename;
+;
+application = SysExcelApplication::construct();
+workbooks = application.workbooks();
+//specify the file path that you want to read
+filename = "Drive:\\item.xls";
+try
+{
+    workbooks.open(filename);
+}
+catch (Exception::Error)
+{
+    throw error("File cannot be opened.");
+}
+workbook = workbooks.item(1);
+worksheets = workbook.worksheets();
+worksheet = worksheets.itemFromNum(1);
+cells = worksheet.cells();
+do
+{
+    row++;
+    itemId = cells.item(row, 1).value().bStr();
+    name = cells.item(row, 2).value().bStr();
+    info(strfmt('%1 - %2', itemId, name));
+    type = cells.item(row+1, 1).value().variantType();
+}
+while (type != COMVariantType::VT_EMPTY);
+application.quit();
+}
+
+
+
+

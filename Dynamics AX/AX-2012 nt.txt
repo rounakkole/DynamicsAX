@@ -1,0 +1,216 @@
+
+
+Clear user data on specific report/ class/ job in AX2012
+//https://github.com/sanme98/AX2012ERD
+System administration - Users - ctrl+G Find user - click Options button - 
+click Usage data button - Switch to "All usage data" 
+list of all settings saved for the user. 
+filter records by system element name, 
+find all records related to your report and delete (alt + F9)
+
+
+
+
+Clear Cache
+AX - Select project - Tools - Cache - Refresh all
+
+
+
+find AOS port
+Start - Server Management Configuration - AX - 
+
+
+
+AX - check Skip (not recommended) - OK
+	AX - (?) - About - Show installed models - Sort my model name
+
+
+SSRS report access
+Start >> report configuration >> Security >> Add user 
+
+
+ADD USER to AX
+Log on as existing AX user
+	Open AX2012 - CAL - Sys Admin - Users - Users - Import Tab - 
+	(wizard)next - domain = Active-Directory & display name = enter AD ID - next
+		checkmark name - next - checkmark name - next
+		available role = system admin (drag to selected role) - next
+		check No profile in all companies - next - finish
+
+
+XPO import
+1) Import ONLY the project (without labels) node.
+2) Export the newly imported project with labels as a backup XPO. 
+It will contain a fresh copy of all the elements you are about to overwrite.
+3) Import same XPO as in step 1, but this time opt for importing the rest of the elements.
+Use the XPO from step 2 if you need to revert back anything.
+
+
+
+Object layer
+AX - DEV Environment - Tools - Options - Development - Application object tree - Show all layers
+
+
+
+To search for a label string
+Click Tools > Label > Label editor.
+Type the string you want to search for in the Find what box, then click Find now.
+Enter a label ID in the Find what box, then click Find now.
+
+
+
+Click the table, right-click DeleteActions, and then click DeleteAction.
+Right-click the new delete action, and then click Properties.
+
+
+"catch" any error displayed in infolog: 
+go to AOT\Classes\Info\add() 
+and set a breakpoint on a line of code somewhere in the beginning of the method (f.e. switch (infologLevel)). 
+Then start whatever is throwing an exception and reproduce the situation when an error occurs. 
+Note: you must have debugging of X++ code enabled in the AOS configuration.
+Also disable "execute in business CIL" incase sysoperation process and execute in user session
+
+
+
+
+Add user to AX Debugger 
+(Use admin credentials)
+Start - Edit local users & groups - Groups -  select Microsoft AX debugger user (right click) 
+	- Properties - Add (user) - enter user name - Ok - Ok
+	- Close AX - log out form server - Reopen
+
+
+
+Execute bussiness operations in CIL off
+AX - Development workspace - Tools - Options - Development 
+	- Execute bussiness operations in CIL (uncheck)
+	- (After development) clear chache - delete usage data
+	- Execute bussiness operations in CIL (check)
+	- Incremental CIL compile
+
+
+
+Dimensions
+AX/General ledger/Setup/Financial Dimensions/
+	- select - Dimension values
+
+
+
+Number sequence
+AX/Organization administration/Common/Number sequences/Number sequences
+	- select - history
+
+
+
+DB Sync error log
+AX - System admin - Enquiries - Database - SQL statement trace log
+
+
+
+Open Config file with
+C:\Program Files (x86)\Microsoft Dynamics AX\50\Client\Bin\Ax32.exe
+
+
+
+Internet Information Services (IIS) Manager
+Server_name\Sites\Default Web Site\APPLICATION\DynamicsAX6HelpServer\Common
+
+
+SQL error
+System Administrator---Periodic---Databases - SQL admin - 
+			table actions -Synchronise DB	(for any warnings - Continue)
+			table actions -Check/ Synchronize (for any warnings - Continue)
+AOT - Table - right click - Synchronize  + Restore + Save + Compile
+
+
+
+
+VS Studio debugging
+AX - If any changes - Incremental CIL compile
+AX - Tools - options - developer - (enable) run in business CIL
+VS - Tools - Options - debugger - General - (uncheck) Enable just my code
+VS - View - Application explorer - class - Add breakpoint
+VS - Debug - Attach to process - Show processes from all users - AX32Serv.exe
+VS - Tools - Options - debugger - symbols - Download
+	Wait for symbols loading
+AX - run batch job
+
+
+
+
+.NET CIL Compilation error
+		Stop service-- AX Object Server AOS
+				- import/export framework
+		rename axppl folder located at --Drive:\APPLICATION\Server\non-prod_env\bin\XppIL_Date	
+		start Service - AX Object Server AOS
+		goto Drive:/APPLICATION/Server/non-prod_env/bin - press Atl+F - open CMD as ADM
+				--  axbuild.exe xppcompileall /s=01   - Run 
+		Drive:\APPLICATION\Server\non-prod_env\Log\AxCompileAll.html (check for error)
+		System Administrator---Periodic---Compile into .net framework-CIL	(40 mins)
+			 AX - show last CIL compile log 
+			(error log: Drive:/APPLICATION/Server/non-prod_env/bin/XppIL/Dynamics.Ax.Application.dll.txt)
+		System Administrator---Periodic---Databases - SQL admin - 
+			table actions - Database--Synchronize DB	(for any warnings - Continue) (30 mins)
+		Start Service -- import/export framework
+
+
+
+
+
+
+AX Trace parcer
+AX >> tools >> Options >> SQL 
+>> SQL trace = enable
+Multiple SQL statements >> Infolog = enable
+Warnings >> Infolog = enable
+Long Queries >> Infolog = enable
+Deadlocks >> Infolog = enable
+apply
+
+
+Shortcuts CU12
+https://learn.microsoft.com/en-us/dynamicsax-2012/appuser-itpro/shortcut-keys
+Use the value in the current field for AOT details 	SHIFT+ENTER
+Open the AOT	CTRL+D
+Open the editor for an application object		CTRL+SHIFT+F2
+Open the Properties sheet		ALT+ENTER
+Filter records		CTRL+G 
+Delete Records		ALT+F9 
+Run command prompt		WindowsKey+R mstsc run
+Refresh the information displayed in the form		F5
+Use the value in the current field as a filter		CTRL+K 
+Export current data in Excel		CTRL+T 
+screenshot WinKey+Shift+S
+
+
+
+
+AOT query to sql
+Query query;
+query = new Query(queryStr(EcoResProductListPage));
+info(query.dataSourceNo(1).toString());
+
+
+
+AX Windows registry key
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\AOS60$01]
+Windows service configurations
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Dynamics Server
+AOS Server(s) configurations
+HKEY_CURRENT_USER\Software\Microsoft\Dynamics\
+When a user opens the client config, this registry key is created and it stores their configurations which take priority over HKLM
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Dynamics
+These are the client config settings for the machine that are used when HKCU settings aren't present.
+
+
+Deploy report via AX 2012 management shell
+Publish-AXReport -SkipReportServerAdminCheck true -ReportName  CustTransList
+
+
+
+
+
+
+
+
+

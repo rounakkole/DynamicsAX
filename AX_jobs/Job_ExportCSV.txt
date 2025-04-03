@@ -1,0 +1,40 @@
+static void Job_ExportCSV(Args _args)
+{
+    #File
+    CommaTextIo commaTextIo;
+    FileIOPermission permission;
+    str fileName = @"Drive:\exportFiles\purchOrders.csv";
+    container cons;
+    int rowNum = 1;
+
+    //declare tables
+    PurchTable purchTable;
+    ;
+
+    permission = new FileIOPermission(fileName,#io_write);
+    permission.assert();
+    commaTextIo = new CommaTextIo(fileName,#io_write);
+    commaTextIo.outFieldDelimiter('|');
+    
+    cons = conPoke(cons, 1,"PurchID", "PurchStatus", "DeliveryDate", "InventSiteID");
+    commaTextIo.write(cons);
+
+     //commaTextIo.write("PurchID, PurchStatus, DeliveryDate, InventSiteID");
+
+    while select firstOnly100 purchTable where purchTable.PurchStatus == PurchStatus::Invoiced
+    {
+         rowNum++;
+         cons = conPoke(cons, 1, purchTable.PurchID);
+         cons = conPoke(cons, 2, purchTable.PurchStatus);
+         cons = conPoke(cons, 3, purchTable.DeliveryDate);
+         cons = conPoke(cons, 4, purchTable.InventSiteID);
+         commaTextIo.write(cons);
+    }
+    //commaTextIo.write(conPeek(cons, 1),conPeek(cons,2),conPeek(cons,3),conPeek(cons,4));
+    
+    commaTextIo.write("// EOFile");
+    commaTextIo = null; // Close the file
+    info(strFmt("completed"));
+
+    CodeAccessPermission::revertAssert();
+}

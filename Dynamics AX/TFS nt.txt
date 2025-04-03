@@ -1,0 +1,97 @@
+
+TFS SETUP
+AX - Version Control - VC parameters - 
+
+	General - status: Enable, System: TFS, Folder: Drive:\Repository
+		Environment settings: both checked
+
+	TFS - URL: https://custom.domain.com/tfs/default/
+		project name: AX
+		Branch folder: AXProject/Branches/Main
+		Enforce check in policy: enable
+
+	Project Specific - Folder: Drive:\LocalRepo\AXProject
+				Model Name: customModel
+				Force sync: enable
+
+
+
+Visual Studio - Team - Connect to TFS
+		Teams explorer - Select team projects - Servers
+				Add: custom.domain.com
+				Path: tfs/default
+				Protocol: Https
+				(check preview: https://custom.domain.com/tfs/default)
+				Ok
+		Teams explorer - Select team projects - Servers - select server - connect
+
+
+
+
+TFS-AX reconnect
+Stop AOS services
+open Visual Studio - Source control explorer - Workspaces:VDI_name - Workspaces...
+	- select all - remove
+Start AOS
+AX - Version Control - VC parameters - (Continue)
+
+
+Clear cache
+C:\Users\<username>\AppData
+localappdata\Microsoft\Team Foundation\3.0\Cache
+
+
+
+
+
+
+TFS CheckIn
+Source control explorer = AXProject
+Branches = Live, Main, Release
+
+check AX model
+
+Project/ Object - right click - Get latest
+Project/ Object - right click - Check out
+make changes - compile
+Project - right click - add ins - Check best practices
+Project - right click - check in
+add description and associated ticket number
+Select project objects - OK
+Project - right click - History
+Note change set number into Excel file
+
+Open Visual Studio - Team Explorer - Source control explorer
+Main - right click - get latest
+(mapping required) (create empty local folder - map to branch with recursive)
+Main - right click - Branching Merging - Merge
+	select changeset
+	target = Release
+Release- select object - Pending Changes 
+	- Comment - Check in 
+(resolve conflict) (Team Explorer - Pending Changes - Actions - Resolve conflicts)
+	 (Take source version/Merge Changes in Merge Tool)
+Note change set number
+
+
+
+
+Get latest
+<Branchname> >> (right click) Advanced >> Get specific version
+	>> (check) both overwrite boxes >> Ok
+
+
+
+
+Verify 
+Open Visual Studio 2013 - Team Explorer -Branch - model (select object) 
+right click - view history - compare latest 2 changesets 
+
+
+
+
+undo check-out
+open Developer Command Prompt 
+https://learn.microsoft.com/en-us/azure/devops/repos/tfvc/undo-changes-another-user-workspace?
+tf undo /workspace:<other-user-workspace>;<other-user> $/<project-path>/<file-name> /collection:<team-project-collection-url>
+tf undo /workspace:Env101_AXWORKSPACE0;101abc-202def $/AX/AXProject/Branches/Main/customModel/Security/Duties/Admin.xpo /collection:https://custom.domain.com/tfs/default

@@ -1,0 +1,80 @@
+--https://learn.microsoft.com/en-us/sql/t-sql/database-console-commands/dbcc-show-statistics-transact-sql?view=sql-server-ver16
+--https://www.sqlservercentral.com/forums/topic/save-output-of-dbcc-show_statistics-into-a-table
+
+DECLARE
+       @TableName sysname,
+       @StatName sysname,
+       @RowCount int,
+       @RowMod int,
+       @IndId int,
+       @Sql varchar(2048)
+
+ 
+
+DECLARE @DbccStats TABLE (StatName sysname, Updated datetime, RowNb int, SampledRows int, Steps int, Density int, AvgKeyLen int, StringIndex varchar(10), FilterExp nvarchar(max), UnfilteredRows int)
+
+ 
+
+CREATE TABLE #StatInfos (TableName sysname, StatName sysname, Updated datetime, RowNb int, SampledRows int, Steps int, Density int, AvgKeyLen int, StringIndex varchar(10), FilterExp nvarchar(max), UnfilteredRows int, RowCnt int, RowMod int, IndId int)
+
+ 
+
+
+DECLARE R CURSOR FOR
+SELECT 
+       SCHEMA_NAME(st.schema_id) + '.' + st.name, si.name, si.rowcnt, si.rowmodctr, si.IndId
+FROM
+       sys.sysindexes si
+       JOIN sys.tables st ON st.object_id = si.id
+WHERE
+       si.id > 100 and si.indid <> 0
+
+ 
+
+
+OPEN R
+
+ 
+
+FETCH NEXT FROM R INTO @TableName, @StatName, @RowCount, @RowMod, @IndId
+
+ 
+
+WHILE (@@FETCH_STATUS = 0)
+BEGIN
+       DELETE FROM @DbccStats
+       SELECT @Sql  = 'DBCC SHOW_STATISTICS(''' + @TableName + ''', ''' + @StatName + ''') WITH STAT_HEADER'
+
+       INSERT INTO @DbccStats 
+       EXEC (@Sql)
+
+ 
+
+       INSERT INTO #StatInfos
+       SELECT @TableName, *, @RowCount, @RowMod, @IndId FROM @DbccStats
+
+ 
+
+
+       FETCH NEXT FROM R INTO @TableName, @StatName, @RowCount, @RowMod, @IndId
+END
+
+ 
+
+CLOSE R
+DEALLOCATE R
+
+ 
+
+       
+SELECT 
+       si.*, ((si.SampledRows*100./si.RowNb)) AS SampleRate, (si.RowMod*100.)/(si.RowCnt+1) AS ModRate, (siM.RowMod*100.)/(siM.RowCnt+1) AS MainModRate
+FROM 
+       #StatInfos si
+       LEFT JOIN #StatInfos siM ON si.TableName = siM.TableName AND siM.indid = 1
+ORDER BY
+       (si.RowMod*100.)/(si.RowCnt+1)
+
+ 
+
+DROP TABLE #StatInfos

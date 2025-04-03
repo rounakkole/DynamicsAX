@@ -1,0 +1,31 @@
+https://dynamics365musings.com/d365-joins/
+
+
+Join – This is the same as an ‘inner join’ in T-SQL. However, in the X++ language the word ‘inner’ is not written. This returns a row when there is a match in both tables.
+ select firstonly salesTable
+            where salesTable.SalesId == "012506"
+            join custTable
+            where custTable.AccountNum == salesTable.CustAccount;
+
+
+Outer Join – This is the same as a ‘Left Join’ in T-SQL. This will return all rows from the left table, even if there is not a match in the right table. Note: There is not ‘right join’ in x++. However, a developer can just change which table is first, and which table is second to come up with the same result as a ‘right join’.
+ while select inventTable
+            where inventTable.ItemId == '0179'
+                || inventTable.ItemId == '91012'
+                || inventTable.ItemId == '0141'
+            outer join inventDimCombination
+            where inventDimCombination.ItemId == inventTable.ItemId {}
+
+
+Exists join – In T-SQL, there is an EXISTS keyword. However, it is not used as a ‘join’. In X++, this word is used to achieve a similar effect. But, it used differently. See example below. Using the exists join will return records from the first table, only if there exists a record in the second table. Note: It will NOT return any records from the second table. And importantly, if there are many records in the second table, the number of rows in the result set will not increase. The system will stop looking after it finds one match in the second table.
+ while select salesTable
+            where salesTable.SalesId == "012506"
+            exists join salesLine
+            where salesLine.SalesId == salesTable.SalesId {}
+
+
+NotExists join – This returns a row in the first table, if there does NOT exist a match in the second (or joined) table.
+ while select salesTable
+            where salesTable.SalesStatus == SalesStatus::Backorder //Open
+            notexists join salesLine
+            where salesLine.SalesId == salesTable.SalesId {}

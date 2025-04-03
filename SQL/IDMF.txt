@@ -1,0 +1,23 @@
+IDMF
+Intelligent Data Management Framework
+
+IDMF > Schedule > Master data > 
+	Master data  > Archive > Task details > General > Give name
+		> Task details > Schedule > Save
+IDMF > Status > Refresh
+IDMF > Administrator > Framework options > Batch size for archive
+IDMF > Configure > Create archive table > Driver table
+		> Select table
+		> Mark unique keys > Discover
+		> Remove unwanted related tables
+IDMF > Configure > Add/ Edit rules > Add expression
+	> Conditional info > Select Table name, field name and condition
+	> Give rule name and description > Click Add
+	> Add expression > Give parameters > Click Add
+ 	> Add expression > Give parameters for table relation > Select field > Click Add > Save
+IDMF > Configure > Save > Yes > Save as "Name" > Save
+IDMF > Schedule > Archive > Task details > General > Give name
+	Task details > Configure rules for archive > Select configuration
+		> Give rules
+	Schedule > Archive > Task details > Schedule > Save
+

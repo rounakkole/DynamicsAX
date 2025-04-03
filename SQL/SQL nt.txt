@@ -1,0 +1,137 @@
+SQL Server Profiler TRACE
+SSMS - connect - Tools - SQL Server Profiler - connect 
+	- Event selection - Column filters.. - Login names
+	- Like - <usr> - Ok
+	-Run - Wait - Stop - File - Save as
+
+https://d365ffo.com/2021/04/09/ax2012-analyzing-select-statements-using-sql-server-profiler/
+On the Events Selection window, only a small subset of Events will be listed.  To see the full list, check the “Show all events” checkbox.
+Expand the Cursors area and select the CursorExecute and CursorPrepare checkboxes.
+Scroll down and expand the Performance area, and select the ShowplanAll and the ShowplanXML checkboxes.
+click on “Column Filters…”.  This will open the Edit Filter window and you can filter on DatabaseName. 
+
+
+
+
+DB access
+SSMS - login - Object Explorer - <server> - Security 
+	- Logins - (right ckick) New Login.. 
+		General - Login name - search -select
+		Server roles - Public / SysAdmin - Ok
+
+
+Edit SQL jobs
+SSMS - login - Object Explorer - <server> - SQL Server Agent
+	- Jobs - <Job> - - (right ckick) Script job as - 
+	- DROP AND CREATE TO - New query editor window
+	- edit - execute
+
+
+Edit SQL stored procedure
+SSMS - login - Object Explorer - <server> - <DB>
+	- Programmability - Stored procedure
+ - To test the syntax, on the Query menu, select Parse
+ - <Stored procedure> - (right ckick) Modify - 
+	- edit - execute
+
+
+
+SQL Logs
+SSMS - login - Object Explorer - <server> - Management
+	- SQL server - Archive #1 01012022
+
+
+
+SQL activity monitor
+new quert - SP_WHOISACTIVE - execute
+From the Standard toolbar, select the Activity Monitor icon.
+Ctrl+Alt+A
+
+
+
+Stored procedure
+SSMS - login - Object Explorer - <server> - <DB>
+	- Programmability - Stored procedure
+
+
+Modify Index
+SSMS - login - Object Explorer -  
+Database - table - tableName - Indexes - IndexName
+Script as - create to - execute
+
+
+Modify stored procdure
+SSMS - login - Object Explorer -  
+Database - Programibbility - Stored procedures - SP_Name 
+Modify - execute
+
+
+
+check Change-tracking status
+select object_name(object_id) as TableName, * from sys.change_tracking_tables
+
+
+
+Change-tracking enable
+IF NOT EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(N'[dbo].[CUSTTABLE]'))
+ALTER TABLE [dbo].[CUSTTABLE] ENABLE CHANGE_TRACKING WITH (TRACK_COLUMNS_UPDATED = ON)
+GO
+
+
+Blocked by
+select request_owner_guid as [UoW ID] from sys.dm_tran_locks where request_session_id = -2
+
+
+Check active processing
+SELECT session_id as SPID, command, sh.text AS Query, start_time, percent_complete, dateadd(second,estimated_completion_time/1000, getdate()) as estimated_completion_time
+FROM sys.dm_exec_requests req CROSS APPLY sys.dm_exec_sql_text(req.sql_handle) sh
+WHERE percent_complete>0
+
+sp_who2 <SPID>
+sp_whoisactive
+
+
+
+RW status
+SELECT * FROM sys.dm_io_virtual_file_stats(NULL, NULL)
+
+
+
+Index creation time
+USE [AXDB]
+SELECT STATS_DATE(OBJECT_ID('INVENTTABLE'), 
+(SELECT index_id FROM sys.indexes WHERE name = 'IX_item'))
+
+
+
+RecId
+SELECT MAX(RecId) FROM <TableName>
+UPDATE SystemSequences SET NextVal = <Max RecId> + 1 WHERE TabId = <TableId>
+select NextVal from SystemSequences WHERE TabId = <TableId>
+
+
+Shrink DB logs
+dbcc sqlperf(logspace)
+USE [ChannelDB]
+GO
+backup log ChannelDB to disk ='D:\ChannelDB.trn' with compression,stats=1
+GO
+dbcc shrinkfile(2,1)
+
+
+active query execution
+Exec sp_whoisactive @show_system_spids = 1
+exec sp_who2
+
+
+
+Duplicate values
+SELECT RECID, COUNT(*)
+FROM dbo.SALESTABLE
+GROUP BY RECID
+HAVING COUNT(*) > 1
+
+
+Filter date
+SELECT * FROM SALESTABLE WHERE CreatedDateTime BETWEEN '2020-01-01 09:00:00' AND '2020-01-01 09:00:59'
+

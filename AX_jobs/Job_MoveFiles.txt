@@ -1,0 +1,88 @@
+static void Job_MoveFiles(Args _args)
+{
+    
+            Set permissionSet;
+
+		str newMoveFileDir;
+		str fileName = @"Drive:\ExportFiles\TestFile.csv";
+            str sharedFolder = @"Drive:\ExportFiles\";
+            str pCountFileName = "TestFile.txt";
+
+            newMoveFileDir  =   strFmt('%1/%2', sharedFolder, pCountFileName);
+            
+            permissionSet   =  new Set(Types::Class);
+            permissionSet.add(new FileIOPermission(fileName, 'rw'));
+            permissionSet.add(new FileIOPermission(newMoveFileDir, 'rw'));
+            permissionSet.add(new InteropPermission(InteropKind::ClrInterop));
+            CodeAccessPermission::assertMultiple(permissionSet);
+            
+            if(System.IO.File::Exists(newMoveFileDir))     
+                System.IO.File::Delete(newMoveFileDir);
+                
+            System.IO.File::Move(fileName, newMoveFileDir);
+		
+            CodeAccessPermission::revertAssert();
+
+    info(strFmt("completed"));
+    
+    
+
+
+   }
+
+
+
+
+
+
+
+
+
+static void Job_RenameFile(Args _args)
+{
+    
+    Set             permissionSet;
+
+    System.Array    dirList;
+    int             rowNo;
+    Filename        newMoveFileDir;
+    fileName        fileName;
+    Filename        baseFileName;
+    filePath        path;
+    Filename        extension;
+    Filename newExtension = ".csv";
+    
+    FilePath sharedFolder = "Drive:\\ExportFiles\\";
+    
+	//FilePath fileName = @"Drive:\ExportFiles\TestFile.csv";
+    //Filename pCountFileName = "TestFile.txt";
+    
+    dirList = System.IO.Directory::GetFiles( sharedFolder,"*.txt" );
+    
+  for( rowNo =0; rowNo < ClrInterop::getAnyTypeForObject( dirList.get_Length() ); rowNo++ )
+    {
+        
+     fileName = ClrInterop::getAnyTypeForObject( dirList.GetValue(rowNo));
+      [path, baseFileName, extension] = Global::fileNameSplit(fileName);
+        
+        newMoveFileDir  =  path +"\\"+ baseFileName + newExtension;
+            
+            permissionSet   =  new Set(Types::Class);
+            permissionSet.add(new FileIOPermission(fileName, 'rw'));
+            permissionSet.add(new FileIOPermission(newMoveFileDir, 'rw'));
+            permissionSet.add(new InteropPermission(InteropKind::ClrInterop));
+            CodeAccessPermission::assertMultiple(permissionSet);
+            
+            if(System.IO.File::Exists(newMoveFileDir))     
+                System.IO.File::Delete(newMoveFileDir);
+                
+            System.IO.File::Move(fileName, newMoveFileDir);
+		
+            CodeAccessPermission::revertAssert();
+	}
+    info(strFmt("completed"));
+    
+    
+
+
+   }

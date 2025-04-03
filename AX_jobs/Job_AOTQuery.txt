@@ -1,0 +1,26 @@
+static void Job_AOTQuery(Args _args)
+{
+    Query query;
+    QueryBuildDataSource qbds;
+    QueryBuildRange qbr;
+    QueryRun queryRun;
+    WMSShipment             wmsShipment;
+    str myRange = '';
+    ;
+
+    myRange = '101';
+    query = new Query ("WMSShipmentQuery");
+    qbds = query.addDataSource(tableNum(WMSShipment));
+    qbr = qbds.addRange(fieldNum(WMSShipment,ShipmentId));
+    //qbr.value("101");
+    qbr.value(myRange);
+    queryRun = new queryRun(query);
+
+    //info (queryRun.query().dataSourceNo(1).toString());
+
+     while (queryRun.next())
+    {
+        wmsShipment = queryRun.get(tableNum(WMSShipment));
+        info(strFmt("ShipmentId: %1", wmsShipment.ShipmentId));
+    }
+}

@@ -1,0 +1,24 @@
+static void Job_BatchJob-infolog(Args _args)
+{
+    BatchJobHistory batchJobHistory;
+    InfologData data;
+    int countItems, i = 0;
+    
+    While select Status, EndDateTime, BatchJobId, Caption, RecId from batchJobHistory
+        order by BatchJobHistory.EndDateTime Desc
+        where batchJobHistory.BatchJobId == 101    //recid
+        && batchJobHistory.EndDateTime >  DateTimeUtil::newDateTime(today()-600,0) 
+        && batchJobHistory.EndDateTime <  DateTimeUtil::newDateTime(today()-500,0) 
+        //&& batchJobHistory.Status == BatchStatus::Error
+    {
+       setprefix(strfmt("@SYS113156", batchJobHistory.Caption, int642str(batchJobHistory.RecId)));
+       data = BatchJobHistory::showLog(batchJobHistory.RecId);
+       countItems = conlen(data);
+
+       for(i=1;i<=countItems;i+=3)
+       {
+           setprefix(strfmt("@SYS107863", conpeek(data, i), int642str(conpeek(data, i+1))));
+           infolog.import(conpeek(data, i+2));
+       }
+    }
+}           
