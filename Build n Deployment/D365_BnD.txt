@@ -1,0 +1,53 @@
+
+sandbox DB refresh	
+https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/database/database-refresh 
+Target D365 > Copy Environment-specific records, key holds, BYOD connection string, other custom setup
+> Check BatchServerConfig, BatchServerGroup, SysCorpNetPrinters, LogisticsElectronicAddress, SysEmailParameters, PrintMgmtSettings, PrintMgmtDocInstance tables
+LCS > your target sandbox on the Environment Details page >  Maintain > Move database menu option.
+> Select the Refresh database option and choose your source environment.
+> Note the warnings and review the list of data elements that aren't copied from the source environment.
+> The refresh operation begins immediately.
+
+
+Access	
+LCS+ AZURE access LCS login >> VM Azure portal >> ADD IP address download RDP login by ADM account (LCS) 
+>> (User access only for front end) Open VS >> Configure TFS >> Mapping branch >> Sync Check-in 
+>> deploy to INT server >> Func. test (check data) deploy to sandbox1 >> 
+
+
+FnO code merging and deployment activity (sandbox) 
+Merge sandbox_branch branch >> Source: sandbox >> Target: sandbox1 Pending Changes >> comment 
+>> add work item by ID (select associate) Check-in ADO >> pipeLines >> sandbox1_pipeline
+>> Build sandbox1-Hosted Agent Run Pipeline  ADO >> Release >> All pipelined >> sandbox1 >> Deploy
+
+
+LCS	
+LCS: lcs.dynamics.com/Logon/Index 
+ADO Project : https://dev.azure.com/ 
+LCS >> Menu drop down >> Project >> 
+
+
+FnO prod deployment	
+ADO >> Project >> Releases >> All pipeline folders >> sandbox1 >> "deploy trunk sanbox1"
+>> Latest release version LCS >> Menu drop down >> Project >> Environments >> sandbox1 
+>> View details >> History >> Environment changes >> Select version >> select "Mark as release candidate" in LCS 
+>> Menu drop down >> Project >> Environments >> Production >> View details >> Maintain >> Update environment 
+>> Available sandbox >> Select "sandbox2" >> Select latest version >> Schedule 
+
+
+Build pipelines	
+ADO >> Project >> Pipelines >> All >> "Build sandbox1-hosted agent" >> Click on version 
+>> Jobs >> X++ compile ADO >> Project >> Pipelines >> All >> "Build sandbox2-hosted agent" >> Edit
+
+
+Move power apps into another sandbox
+http://make.powerapps.com/
+Power apps portal >> select environment >> source server >> Select sandbox Environment 
+>> export package (auto attach flows) Power app >> select environment >> target server 
+>> import canvas app >> setup >> create new >> change name >> keep resource name/ flow names 
+>> select user >> import go to app >> reload page (wait for 10 mins) >> dataSource 
+>> FnO connecter = delete, keep labels Add connector >> select environment (URL) 
+>> select entity >> connect >> flows >> select >> edit >> Get active dimensions >> instance name 
+>> save - save >> publish select app >> share >> email will trigger (OR run >> copy URL) FnO 
+>> D365 >> Users >> check user  >> enable >> SysAdmin or check required access level
+>> Post deployment activities if any

@@ -1,0 +1,24 @@
+		
+		AX application server patching / restart process	
+
+		Step 1 : disable AX batch servers (with script or from within application)	
+		Step 2 : stop AOS service on all the related servers 
+			 Stop the Dynamics AX application Object Server (AOS) service on servers (parallel)	
+		Step 3 : stop SQL service on Report_env	
+		Step 4 : stop SQL service on Application_env	
+		Step 5 : patch and reboot server Application_env – wait till start of SQL services	
+		Step 6 : patch and reboot server Report_env - wait till start of SQL services	
+		Step 7 : reboot server Application_env2 + Application_env1 (parallel) 
+			 (GPO may take up to 20 minutes)		
+		Step 8 : wait for AOS services to start running on all Application_env servers	
+		Step 9 : enable AX Batch servers (with script or from within application)	
+			
+
+
+
+
+
+
+
+
+

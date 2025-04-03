@@ -1,0 +1,158 @@
+Example ms sql script
+
+https://community.dynamics.com/blogs/post/?postid=a3490b9f-7200-4923-9945-c597fc57fd25
+http://www.exploreax.com/blog/blog/2015/09/02/ax-db-restore-scripts-1-ssrs-servers/
+
+1. Remove all but one of the SSRS configurations
+2. Update the remaining one to be default and update the relevant data fields.
+Declare @AOS varchar(30) = '[AOSID]' --must be in the format '01@SEVERNAME'
+Declare @REPORTINSTANCE varchar(50) = 'AX'
+Declare @REPORTMANAGERURL varchar(100) = 'http://[DESTINATIONSERVERNAME]/Reports_AX'
+Declare @REPORTSERVERURL varchar(100) = 'http://[DESTINATIONSERVERNAME]/ReportServer_AX'
+Declare @REPORTCONFIGURATIONID varchar(100) = '[UNIQUECONFIGID]'
+Declare @REPORTSERVERID varchar(15) = '[DESTINATIONSERVERNAME]'
+Declare @REPORTFOLDER varchar(20) = 'DynamicsAX'
+Declare @REPORTDESCRIPTION varchar(30) = 'Dev SSRS';
+
+delete from SRSSERVERS where RecId not in (select min(recId) from SRSSERVERS)
+update SRSSERVERS set 
+    SERVERID=@REPORTSERVERID, 
+    SERVERURL=@REPORTSERVERURL, 
+    AXAPTAREPORTFOLDER=@REPORTFOLDER,
+    REPORTMANAGERURL=@REPORTMANAGERURL, 
+    SERVERINSTANCE=@REPORTINSTANCE, 
+    AOSID=@AOS,
+    CONFIGURATIONID=@REPORTCONFIGURATIONID, 
+    DESCRIPTION=@REPORTDESCRIPTION
+where SERVERID != @REPORTSERVERID -- Optional if you want to see the "affected row count" after execution.
+
+
+
+
+
+1. Remove all but one of the SSAS configurations
+2. Update the server details of the remaining configuration
+Declare @SSASSERVERNAME varchar(20) = '[YOURSERVERNAME]\AX'
+Declare @SSASDESCRIPTION varchar(30) = 'Dev SSAS'; -- Description of the server configuration
+
+delete from BIAnalysisServer where RecId not in (select min(recId) from BIAnalysisServer)
+update BIAnalysisServer set 
+    SERVERNAME=@SSASSERVERNAME, 
+    DESCRIPTION=@SSASDESCRIPTION,
+	ISDEFAULT = 1
+WHERE SERVERNAME <> @SSASSERVERNAME -- Optional where clause if you want to see the "affected rows
+
+
+
+
+
+
+
+1. Remove all but one of the AOS configurations
+2. Update the server details of the remaining configuration
+3. Enable the remaining server as the “batch” server.
+ --Reuse the parameter declared for the SSRS update script
+Declare @AOS varchar(30) =  '[AOSID]' -- Must be in the format '01@SEVERNAME'
+-- Clear out all but one server config.
+delete from SYSSERVERCONFIG where RecId not in (select min(recId) from SYSSERVERCONFIG)
+-- Update the remaining one to point to your current AOS and enable it for batch processing
+update SYSSERVERCONFIG set serverid=@AOS, ENABLEBATCH=1 
+where serverid != @AOS -- Optional if you want to see the "affected row count" after execution.
+
+
+
+1. For each of our batch groups we want to:
+-- Delete all but one of their selected/linked “batch servers”
+-- Re-point the remaining link to the current batch server setup in our previous script.
+2. Disable batch jobs that we do not want to run in our development environment.
+--Reuse the parameter declared for the SSRS and AOS update script
+Declare @AOS varchar(30) =  '[AOSID]' -- Must be in the format '01@SEVERNAME'
+-- #1.1 Clear out but one link between each batch server group and batch server.
+delete from BATCHSERVERGROUP where RecId not in (select min(recId) from BATCHSERVERGROUP group by GROUPID)
+-- #1.2 Repoint remaining links to the active aos/batch server.
+update BATCHSERVERGROUP set SERVERID=@AOS 
+  where serverid != @AOS -- Optional to see "affected row count"
+-- #2 - Disable batch jobs that should not run in a production environment. Copy the two lines below for each batch job you want to disable.
+update batchjob set batchjob.status=4 where batchjob.CAPTION = '[BATCHJOBNAME]'
+update batch set batch.STATUS=4 from batch inner join BATCHJOB on BATCHJOBID=BATCHJOB.RECID AND batchjob.CAPTION = '[BATCHJOBNAME]'
+
+
+
+1. Update the SYSBCPROXYUSERACCOUNT table to reflect the business connector user’s SID, networkdomain and network alias. 
+--For this step you will need to find out the SID of the business connector either by setting it manually the first time and then running select SID from SYSBCPROXYUSERACCOUNT where NETWORKDOMAIN='[yourdomain]’ and NETWORKALIAS='[yourbcuseralias]’ or follow one of the suggestions over here http://blogs.msdn.com/b/gaurav/archive/2014/06/03/get-sid-of-the-object-registry-wmic-powershell.aspx
+2. Update the SYSWORKFLOWPARAMETERS table to reflect the userId of the workflow execution account.
+3. Update the SYNCPARAMETERS table to reflect the userId of the Microsoft Project server synchronization service account.
+4. Update SYSGLOBALCONFIGURATION to reflect new help server URL if necessary.
+---BC Proxy Details ---
+Declare @BCPSID varchar(50) = '[BCPROXY_SID]'
+Declare @BCPDOMAIN varchar(50) = '[yourdomain]'
+Declare @BCPALIAS varchar(50) = '[bcproxyalias]'
+---Service Accounts ---
+Declare @WFEXECUTIONACCOUNT varchar(20) = 'wfexc'
+Declare @PROJSYNCACCOUNT varchar(20) = 'syncex'
+---Help Server URL---
+Declare @helpserver varchar(200) = 'http://[YOURSERVER]/DynamicsAX6HelpServer/HelpService.svc'
+
+---Set BCPRoxy Account---
+update SYSBCPROXYUSERACCOUNT set SID=@BCPSID, NETWORKDOMAIN=@BCPDOMAIN, NETWORKALIAS= @BCPALIAS
+where NETWORKALIAS != @BCPALIAS --optional to display affected rows.
+---Set WF Execution Account---
+update SYSWORKFLOWPARAMETERS set EXECUTIONUSERID=@WFEXECUTIONACCOUNT where EXECUTIONUSERID != @WFEXECUTIONACCOUNT
+---Set Proj Sync Account---
+update SYNCPARAMETERS set SYNCSERVICEUSER=@PROJSYNCACCOUNT where SyncServiceUser!= @PROJSYNCACCOUNT
+---Set help server URL---
+update SYSGLOBALCONFIGURATION set value=@helpserver where name='HelpServerLocation' and value != @helpserver
+
+
+
+1. Update the SysEmailParameters table to update the SMTP server name (and additional login parameters)
+2. Update the DMFParameters table to reflect the new shared folder path.
+---Outgoing Email Settings---
+Declare @SMTP_SERVER varchar(100) = 'smtp.mydomain.com' --Your SMTP Server
+Declare @SMTP_PORT int = 25
+---DMF Folder Settings ---
+Declare @DMFFolder varchar(100) = '\\[YOUR FILE SERVER]\AX import\'
+---Update Email Parameters---
+Update SysEmailParameters set SMTPRELAYSERVERNAME = @SMTP_SERVER, @SMTP_PORT=@SMTP_PORT
+---Update DMF Settings---
+update DMFParameters set SHAREDFOLDERPATH = @DMFFolder 
+where SHAREDFOLDERPATH != @DMFFolder --Optional to see affected rows
+
+
+
+
+
+1. Setting Email Templates and User Email Addresses
+---Email Template Settings---Declare @WFAPPROVER_ADD varchar(50) = 'workflowqa@norplats.co.za'
+Declare @EMAIL_TEMPLATE_NAME varchar(50) = 'Dynamics AX - DEVELOPMENT'
+Declare @EMAIL_TEMPLATE_ADDRESS varchar(50) = 'dev@mydomain.com'
+---Email Address Clearing Settings---
+DECLARE @ExclUserTable TABLE (id varchar(10))
+insert into @ExclUserTable values ('userid1'), ('userid2')
+---Update Email Templates---
+update SYSEMAILTABLE set SENDERADDR = @EMAIL_TEMPLATE_ADDRESS, SENDERNAME = @EMAIL_TEMPLATE_NAME where SENDERADDR!=@EMAIL_TEMPLATE_ADDRESS OR  SENDERNAME!=@EMAIL_TEMPLATE_NAME;
+update SYSEMAILSYSTEMTABLE set SENDERADDR = @EMAIL_TEMPLATE_ADDRESS, SENDERNAME = @EMAIL_TEMPLATE_NAME where SENDERADDR!=@EMAIL_TEMPLATE_ADDRESS OR  SENDERNAME!=@EMAIL_TEMPLATE_NAME;
+---Update User Email Addresses---
+update sysuserinfo set sysuserinfo.EMAIL = '' where sysuserInfo.ID not in (select id from @ExclUserTable)
+--update sysuserinfo set sysuserinfo.EMAIL = 'youraddress@mydomain.com'
+
+
+
+
+
+
+1. Disable users
+--List of users separated by | to keep enabled, while disabling all others 
+Declare @ENABLE_USERS NVarchar(max) = '|Admin|TIM|'
+update userinfo set userinfo.enable=0 where  CharIndex('|'+ cast(ID as varchar) + '|' , @ENABLE_USERS) = 0
+--List of users separated by | to disable, while keeping all the rest enabled all others  
+Declare @DISABLE_USERS NVarchar(max) = '|BOB|JANE|'
+update userinfo set userinfo.enable=0 where  CharIndex('|'+ cast(ID as varchar) + '|' , @DISABLE_USERS) > 0
+
+
+
+
+
+
+
+

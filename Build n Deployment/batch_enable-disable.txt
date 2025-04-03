@@ -1,0 +1,36 @@
+Example by chatGpt
+
+
+
+
+
+@echo BatchJobSchedulerRun
+REM Set the path to your AX client executable
+set AXCLIENT_PATH=C:\Program Files (x86)\Microsoft Dynamics AX\60\Client\Bin\AX32.exe
+
+REM Specify the parameters for the batch job
+set AOS_SERVER=YourAOSServerName
+set COMPANY=YourCompanyName
+set BATCH_GROUP=YourBatchGroupName
+
+REM Command to enable and start the batch server
+%AXCLIENT_PATH% -startupcmd=BatchJobSchedulerEnable -company=%COMPANY% -server=%AOS_SERVER%
+
+REM Optional: Run a specific batch job
+%AXCLIENT_PATH% -startupcmd=BatchJobSchedulerRun -company=%COMPANY% -server=%AOS_SERVER% -batchgroup=%BATCH_GROUP%
+
+
+
+
+
+
+@echo BatchJobSchedulerDisable
+REM Set the path to your AX client executable
+set AXCLIENT_PATH=C:\Program Files (x86)\Microsoft Dynamics AX\60\Client\Bin\AX32.exe
+
+REM Specify the parameters for disabling the batch server
+set AOS_SERVER=YourAOSServerName
+set COMPANY=YourCompanyName
+
+REM Command to disable the batch server
+%AXCLIENT_PATH% -startupcmd=BatchJobSchedulerDisable -company=%COMPANY% -server=%AOS_SERVER%

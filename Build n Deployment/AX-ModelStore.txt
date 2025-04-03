@@ -1,0 +1,144 @@
+Build and prepare AX ModelStore file
+
+
+
+	1	Check-in all the changes in to TFS final branch
+	2	Check server Maintenance mode
+
+	3	Copy Prod Db backup files to the non-prod_env environment --Transaction and model DB
+	
+	4	stop both ax service before you restore the DB	
+		SERVICES - Import/Export Framework Service
+				Microsoft Dynamics AX Object Server 1.1 
+
+	5	delete the DB and then restore it  to avoid compile error	
+		SSMS login
+		Object explorer - non-prod_env - Databases - AXDB - delete
+			AXDB_model - delete (Enable "delete existing connections")
+		
+	6	restore the prod DB back up in non-prod machine 	
+		make sure to change name from prod to non-prod_env --in the file option before you start the restore	
+		after restore change the name from prod to non-prod_env in the file option for logs
+		SSMS - Object explorer - non-prod_env - Databases - (right click) restore - databases - GENERAL - select Device
+			File - Select Backup File (Drive:/Backup-0101/PROD_BACKUP)
+			Source database: PROD - Destination database: NON-PROD_ENV
+		restore databases - FILE - check relocate all files to folder - rename Restore as NON-PROD_ENV
+		restore databases - OPTIONS - check Overwrite the existing DB
+			click on Script - execute 
+		(follow for model backup also) 
+		(sql query: sp_whoisactive)
+	
+	7	 post restore activities-- run all the 2 scripts	
+		1.copy text from sql script1 --change AOS and AX configuration
+		2.copy text from sql script2 --change any custom parameters like folder paths and ports
+			SSMS - new query - copy paste - execute	
+
+	8	(delete/ rename) xppil folder located at --Drive:\Folder\Server\AXDB\bin	
+		bin/xppIL - rename to xppIL101
+			delete previous xppIL backup (30 mins)
+
+	9	start AOS service-- (and not the DIXF service)	(15 mins)
+		Service - AX Object Server AOS
+
+	10	in AX workspace-- go to batch server and check the non-prod_AOS --delete the other servers	
+		non-prod_env batch server should also be unchecked	
+			AX - CAL - Sys Admin. - Setup - System - Server Config
+		Prod batch service - select - delete
+		disable batch for non-prod server (IsBatchServer for non-prod_env)
+
+	11	go to batch jobs-- if anything is executing then change to Cancel
+			System administration > Inquiries > Batch jobs (check)
+		compilation script- sychronization--- x++ compile script (use adm login, 40 mins)	
+		"go to cmd prompt-----   Run as admin-- cd D:\ 
+				-- D:
+				-- cd D:\Folder\Server\AXDB\bin
+				-- AXbuild.exe xppcompileall /s=01
+			(OR goto Drive:/Folder/Server/AXDB/bin - press Atl+F - open cmd)
+
+		This will open 6 windows and process will start"
+		(Don't: System Administrator---Periodic---Compile application) (5 hrs)
+		Drive:\Folder\Server\AXDB\Log\AxCompileAll.html (check for error)
+
+		System Administrator---Periodic---Compile into .net framework-CIL	(40 mins)
+		System Administrator---Periodic---Databases - SQL admin - 
+			table actions - Database--Synchronize DB	(for any warnings - Continue) (30 mins)
+
+	12	AX - New Dev workspace - 
+			Tools--Model management--Models installed	
+		sort on model name --look for custom model (customModel (Conflict 1))	
+		(if conflict found then delete the conflict one)
+
+		go to  ax management shell	-- run as administration (use adm login)
+		-- Uninstall-AXModel -Model "customModel (Conflict 1)"	
+		(deletes conflict model  file)
+	
+
+
+
+
+
+
+
+
+
+		Stop both AX service
+			SERVICES - Import/Export Framework Service
+			Microsoft Dynamics AX Object Server 1.1 --AXDB
+		(validate checked-in changes in TFS final-branch)
+			Open Visual Studio 2013 - Team Explorer -Branch - model (select)
+				- history
+
+
+		Build Server: Build_env
+		go to Build_env machine
+		run the task schedular on final-branch auto build task. 
+		Other tasks should be disabled that time	(Take sceenshot)
+			(refresh to check status; final-branch status: Running)
+		Once the task is completed (final-branch status: Ready).. 
+		Make branch1 and branch2 tasks enable (restore tasks as per screenshot)
+		/Drive:/AxBuilds/final-branch/LastBuildCompleted/Log/Error.txt --(check errors - resolve - repeat)
+
+
+	13	run deployment script in non-prod_env machine	
+		Drive:\Scripts\DeployAX.cmd  --run as administrator
+
+		(OR)
+		Copy and validate latest customModel.axmodel file from Build Server to Drive:/
+		Open MS dynamics AX 2012 management shell  -- run as admin
+		-> install-axmodel -file Drive:\customModel.axmodel -Conflict Overwrite
+		
+			(Start AOS)
+	14	check all the code changes are available or not  	
+			AX- skip(not reccomonded)- Ok  
+			(Stop AOS)
+
+
+	15	compilation command, CIL, sychronization--- 
+
+			(AOS: stopped) - Delete/Rename latest XppIL folder content (ctl+ A - Shift + Delete) (20 mins)
+			(Drive:/Folder/Server/AXDB/log/XppIL/)
+		Start AOS services
+			goto Drive:/Folder/Server/AXDB/bin - Atl+F
+				Open command prompt - Run as admin - paste command (use adm login, 40 mins)
+				--  axbuild.exe xppcompileall /s=01   - Run 
+			Drive:/Folder/Server/AXDB/log/AxCompileAll.html (check for errors - resolve - compile)
+
+		system admin-->Compile .Net CIL framework
+		AX - show last CIL compile log 
+			(error log: Drive:/Folder/Server/AXDB/log/XppIL/Dynamics.Ax.Application.dll.html)
+		system admin-->Database--Synchronize DB (for any warnings - Continue) (20 mins)
+
+
+	16	Deploy Reports -> 
+		Run “Start/Administrative Tools/Microsoft dynamics AX 2012 Management Shell” in “Run as administrator” mode, (1 hr)
+		-> Publish-AXReport –ReportName *	
+			Check Reports (AX -CAL - Accounts Receivable - Reports - Customer - Customers Base Data)
+				      (AX -CAL - Accounts Receivable - Reports - custom specific - Customer details)
+						
+			
+	17	 In non-prod machine --export the model store using the script
+			Start Menu > All Programs > Administrative Tools > Microsoft Dynamics AX Management Shell
+			Export-AXModelStore -File <Filename> -Details		(10 mins)
+			
+
+		
