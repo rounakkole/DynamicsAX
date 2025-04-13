@@ -1,0 +1,24 @@
+         class CustControllerClass extends SysOperationServiceController
+         {
+         }
+
+         public ClassDescription caption()
+         {
+             return "batch job caption";
+         }
+
+         public void new()
+         {
+             super();
+             this.parmClassName(classStr(CustServiceClass));
+             this.parmMethodName(methodStr(CustServiceClass, startOperation));
+             this.parmExecutionMode(SysOperationExecutionMode::Synchronous);
+             this.parmShowDialog(true);
+         }
+
+         public static void main(Args args)
+         {
+             CustControllerClass controller;
+             controller = new CustControllerClass();
+             controller.startOperation();
+         }

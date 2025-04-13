@@ -1,0 +1,90 @@
+         //www.artofcreation.be/2012/02/27/adding-runtime-tasks-to-a-business-operation-framework-service/
+         class CustServiceClass extends SysOperationServiceBase
+         {
+             // Class property should be set to run on Server
+             CustContractClass contract;
+             QueryRun queryRun;
+             CustTable custTable;
+             BatchHeader batchHeader;
+             CustLogicClass custLogicClass;
+         }
+
+         [SysEntryPointAttribute(true)]
+         public void startOperation (CustContractClass _contract)
+         {
+             #OCCRetryCount
+             ;
+             contract = _contract;
+             info ("Running CustServiceClass");
+             // create a new queryrun object
+             queryRun = new QueryRun(contract.getQuery());
+             if (this.isExecutingInBatch() && !batchHeader)
+             {
+                 batchHeader = this.getCurrentBatchHeader();
+             }
+             if (contract.parmIsSomethingEnabled())
+             {
+                try
+                {
+                    while (queryRun.next())
+                    {
+                        custTable = queryRun.get(tablenum(CustTable));
+                        ttsBegin;
+                        custLogicClass.constuct(CustTable.CustId);
+                        if (batchHeader != null)
+                        {
+                            // code is running in batch, so add a runtime task.
+                            batchHeader.addRuntimeTask(custLogicClass, this.getCurrentBatchTask().RecId);
+                        }
+                        else
+                        {
+                            // This is being run outside of a batch.
+                            custLogicClass.run();
+                        }
+                        ttsCommit;
+                    }
+                 }
+                 catch (Exception::Deadlock)
+                 {
+                     if (xSession::currentRetryCount() >= #RetryNum)
+                     {
+                         ttsAbort;
+                         throw Exception::Deadlock;
+                     }
+                     else
+                     {
+                         retry;
+                     }
+                 }
+                 catch (Exception::UpdateConflict)
+                 {
+                     if (appl.ttsLevel() == 0)
+                     {
+                         if (xSession::currentRetryCount() >= #RetryNum)
+                         {
+                             ttsAbort;
+                             throw Exception::UpdateConflictNotRecovered;
+                         }
+                         else
+                         {
+                             retry;
+                         }
+                     }
+                     else
+                     {
+                         ttsAbort;
+                         throw Exception::UpdateConflict;
+                     }
+                 }
+                 catch (Exception::Error)
+                 {
+                     // catch the errors so processing can continue
+                     curext(); // avoids a warning about an empty block
+                 }
+             }
+             if(batchHeader)
+             {
+                 // save the batchheader if it has been created
+                 batchHeader.save();
+             }
+         }

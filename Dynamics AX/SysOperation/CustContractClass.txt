@@ -1,0 +1,38 @@
+         [DataContractAttribute]
+         class CustContractClass
+         {
+             boolean isSomethingEnabled;
+             str packedQuery;
+         }
+
+         public Query getQuery()
+         {
+             return new Query(SysOperationHelper::base64Decode(packedQuery));
+         }
+
+         [
+             DataMemberAttribute,
+             SysOperationLabelAttribute(literalstr("Enable Something")),
+             SysOperationDisplayOrderAttribute('2')
+         ]
+         public boolean parmIsSomethingEnabled(boolean _isSomethingEnabled = isSomethingEnabled)
+         {
+             isSomethingEnabled = _isSomethingEnabled;
+             return isSomethingEnabled;
+         }
+ 
+         [
+             DataMemberAttribute,
+             AifQueryTypeAttribute('_packedQuery', querystr(CustTableAotQuery)),
+             SysOperationDisplayOrderAttribute('1')
+         ]
+         public str parmQuery(str _packedQuery = packedQuery)
+         {
+             packedQuery = _packedQuery;
+             return packedQuery;
+         }
+
+         public static CustContractClass construct()
+         {
+             return new CustContractClass();
+         }
